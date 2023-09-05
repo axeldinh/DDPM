@@ -10,6 +10,19 @@ from model import DDPM
 import wandb
 from config import model_params, hyperparams
 
+label_to_class = {
+    0: "T-shirt/top",
+    1: "Trouser",
+    2: "Pullover",
+    3: "Dress",
+    4: "Coat",
+    5: "Sandal",
+    6: "Shirt",
+    7: "Sneaker",
+    8: "Bag",
+    9: "Ankle boot"
+}
+
 def train():
 
     hyperparams.update(model_params)
@@ -56,12 +69,7 @@ def train():
 
         if epoch % 10 == 0:
             samples, intermediate = test_model(model)
-            # Save a wandb table
-            table = wandb.Table(columns=["Sample", "Context"])
-            for i in range(30):
-                table.add_data(wandb.Image(samples[i]), labels[i])
-
-            wandb.log({"loss": loss, "epoch": epoch, "samples": table})
+            wandb.log({"samples": wandb.Image(samples)}, step=epoch)
 
 @torch.no_grad()
 def test_model(model):
@@ -74,9 +82,6 @@ def test_model(model):
     model.train()
 
     return samples, intermediate
-
-
-
 
 
 if __name__ == "__main__":
