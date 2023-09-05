@@ -55,7 +55,7 @@ def train():
         wandb.log({"loss": loss / len(dataloader)}, step=epoch)
 
         if epoch % 10 == 0:
-            samples, intermediate = test_model(model, images)
+            samples, intermediate = test_model(model)
             # Save a wandb table
             table = wandb.Table(columns=["Sample", "Context"])
             for i in range(50):
@@ -68,8 +68,8 @@ def test_model(model):
 
     model.eval()
 
-    contexts = torch.arange(10).to(model.device).repeat(50)
-    samples, intermediate = model.sample_ddpm(50, contexts=contexts, save_rate=1)
+    contexts = torch.arange(10).to(model.device).repeat(3).to(torch.float32)
+    samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
 
     return samples, intermediate
 
@@ -78,5 +78,7 @@ def test_model(model):
 
 
 if __name__ == "__main__":
-    train()
+    #train()
+    model = DDPM(**model_params)
+    test_model(model)
 
