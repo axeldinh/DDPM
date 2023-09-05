@@ -1,5 +1,6 @@
 import torch 
 import torch.nn as nn
+import numpy as np
 
 class ResidualConvBlock(nn.Module):
 
@@ -87,7 +88,6 @@ class EmbedFC(nn.Module):
     def forward(self, x):
         x = x.view(-1, self.input_dim)
         return self.model(x)
-    
 
 class ContextUNet(nn.Module):
 
@@ -128,7 +128,7 @@ class ContextUNet(nn.Module):
             nn.Conv2d(n_feat, in_channels, kernel_size=3, stride=1, padding=1),
         )
 
-    def forward(self, x, t, c=None):
+    def forward(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor=None):
 
         x = self.init_conv(x)  # [B, 256, 28, 28]
         down1 = self.down1(x)  # [B, 256, 14, 14]
@@ -137,7 +137,7 @@ class ContextUNet(nn.Module):
         hidden_vec = self.to_vec(down2)  # [B, 512, 1, 1]
 
         if c is None:
-            c = torch.zeros(x.shape[0], self.n_cfeat)
+            c = torch.zeros(x.shape[0], self.n_cfeat).to(x.device)
 
         cembed1 = self.contex_embed1(c).view(-1, 2*self.n_feat, 1, 1)  # [B, 512]
         tembed1 = self.time_embed1(t).view(-1, 2*self.n_feat, 1, 1)  # [B, 512]
@@ -150,3 +150,54 @@ class ContextUNet(nn.Module):
         out = self.out_conv(torch.cat((up3, x), dim=1))  # [B, 3, 28, 28]
 
         return out
+
+class DDPM(nn.Module):
+
+    def __init__(self, n_feat, nc_feat, height, beta_1, beta_2, timesteps, save_dir, device='cpu'):
+
+        super().__init__()
+
+        self.n_feat = n_feat
+        self.nc_feat = nc_feat
+        self.height = height
+        self.beta_1 = beta_1
+        self.beta_2 = beta_2
+        self.timesteps = timesteps
+        self.save_dir = save_dir
+        self.device = device
+
+        self.context_unet = ContextUNet(3, n_feat, nc_feat, height).to(device)
+        self.b_t = (beta_2 - beta_1) * torch.linspace(0, 1, timesteps + 1).to(self.device) + beta_1
+        self.a_t = 1 - self.b_t
+        self.ab_t = torch.cumsum(self.a_t.log(), dim=0).exp()
+        self.ab_t[0] = 1
+
+    def denoise_add_noise(self, x, t, pred_noise, z=None):
+        if z is None:
+            z = torch.randn_like(x)
+        noise = self.b_t[t].sqrt() * z
+        mean = (x - pred_noise * ((1 - self.a_t[t]) / (1 - self.ab_t[t]).sqrt())) / self.a_t[t].sqrt()
+        return mean + noise
+    
+    def random_sample_ddpm(self, n_sample, save_rate=20):
+
+        samples = torch.randn(n_sample, 3, self.height, self.height).to(self.device)
+        intermediate = []
+
+        for i in range(self.timesteps, 0, -1):
+
+            print("Sampling timestep: ", i, "/", self.timesteps, end="\r")
+
+            t = torch.tensor([i / self.timesteps])[:, None, None, None].to(self.device)
+
+            z = torch.randn_like(samples) if i > 1 else 0
+
+            eps = self.context_unet(samples, t)
+            samples = self.denoise_add_noise(samples, i, eps, z)
+
+            if i % save_rate == 0 or i==self.timesteps:
+                intermediate.append(samples.detach().cpu().numpy())
+
+        intermediate = np.stack(intermediate)
+
+        return samples, intermediate
