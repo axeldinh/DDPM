@@ -8,26 +8,9 @@ from tqdm import tqdm
 from model import DDPM
 
 import wandb
+from config import model_params, hyperparams
 
 def train():
-
-    model_params = {
-        "in_channels": 1,
-        "n_feat": 256,
-        "nc_feat": 1,
-        "height": 28,
-        "beta_1": 1e-4,
-        "beta_2": 0.02,
-        "timesteps": 10,
-        "device": "cpu",
-        "save_dir": "models"
-    }
-
-    hyperparams = {
-        "batch_size": 32,
-        "learning_rate": 0.001,
-        "epochs": 10,
-    }
 
     hyperparams.update(model_params)
 
