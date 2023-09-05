@@ -153,10 +153,11 @@ class ContextUNet(nn.Module):
 
 class DDPM(nn.Module):
 
-    def __init__(self, n_feat, nc_feat, height, beta_1, beta_2, timesteps, save_dir, device='cpu'):
+    def __init__(self, in_channels, n_feat, nc_feat, height, beta_1, beta_2, timesteps, save_dir, device='cpu'):
 
         super().__init__()
 
+        self.in_channels = in_channels
         self.n_feat = n_feat
         self.nc_feat = nc_feat
         self.height = height
@@ -166,11 +167,14 @@ class DDPM(nn.Module):
         self.save_dir = save_dir
         self.device = device
 
-        self.context_unet = ContextUNet(3, n_feat, nc_feat, height).to(device)
+        self.context_unet = ContextUNet(in_channels, n_feat, nc_feat, height).to(device)
         self.b_t = (beta_2 - beta_1) * torch.linspace(0, 1, timesteps + 1).to(self.device) + beta_1
         self.a_t = 1 - self.b_t
         self.ab_t = torch.cumsum(self.a_t.log(), dim=0).exp()
         self.ab_t[0] = 1
+
+    def predict_noise(self, x, t, c=None):
+        return self.context_unet(x, t, c)
 
     def denoise_add_noise(self, x, t, pred_noise, z=None):
         if z is None:
@@ -179,7 +183,7 @@ class DDPM(nn.Module):
         mean = (x - pred_noise * ((1 - self.a_t[t]) / (1 - self.ab_t[t]).sqrt())) / self.a_t[t].sqrt()
         return mean + noise
     
-    def random_sample_ddpm(self, n_sample, save_rate=20):
+    def sample_ddpm(self, n_sample, contexts=None, save_rate=20):
 
         samples = torch.randn(n_sample, 3, self.height, self.height).to(self.device)
         intermediate = []
@@ -192,7 +196,7 @@ class DDPM(nn.Module):
 
             z = torch.randn_like(samples) if i > 1 else 0
 
-            eps = self.context_unet(samples, t)
+            eps = self.context_unet(samples, t, contexts)
             samples = self.denoise_add_noise(samples, i, eps, z)
 
             if i % save_rate == 0 or i==self.timesteps:
@@ -201,3 +205,9 @@ class DDPM(nn.Module):
         intermediate = np.stack(intermediate)
 
         return samples, intermediate
+
+    def perturb_input(self, x: torch.Tensor, t:torch.Tensor, noise: float):
+        """
+        Return a perturbed input.
+        """
+        return self.ab_t.sqrt()[t, None, None, None] * x + (1 - self.ab_t[t, None, None, None]) * noise
