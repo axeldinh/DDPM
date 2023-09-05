@@ -67,9 +67,9 @@ def train():
 def test_model(model):
 
     model.eval()
-
-    contexts = torch.arange(10).to(model.device).repeat(3).to(torch.float32)
-    samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
+    with torch.no_grad():  # If not used, cuda runs out of memory
+        contexts = torch.arange(10).to(model.device).repeat(3).to(torch.float32)
+        samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
 
     return samples, intermediate
 
