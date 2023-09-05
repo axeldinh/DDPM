@@ -185,7 +185,7 @@ class DDPM(nn.Module):
     
     def sample_ddpm(self, n_sample, contexts=None, save_rate=20):
 
-        samples = torch.randn(n_sample, 3, self.height, self.height).to(self.device)
+        samples = torch.randn(n_sample, self.in_channels, self.height, self.height).to(self.device)
         intermediate = []
 
         for i in range(self.timesteps, 0, -1):
