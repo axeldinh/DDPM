@@ -67,7 +67,7 @@ def train():
 
         wandb.log({"loss": loss / len(dataloader)}, step=epoch)
 
-        if epoch % 10 == 0:
+        if epoch % 10 == 0 or epoch == hyperparams["epochs"] - 1:
             samples, intermediate = test_model(model)
             wandb.log({"samples": wandb.Image(samples)}, step=epoch)
 
