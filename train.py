@@ -78,7 +78,4 @@ def test_model(model):
 
 
 if __name__ == "__main__":
-    #train()
-    model = DDPM(**model_params)
-    test_model(model)
-
+    train()
