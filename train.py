@@ -58,7 +58,7 @@ def train():
             samples, intermediate = test_model(model)
             # Save a wandb table
             table = wandb.Table(columns=["Sample", "Context"])
-            for i in range(50):
+            for i in range(30):
                 table.add_data(wandb.Image(samples[i]), labels[i])
 
             wandb.log({"loss": loss, "epoch": epoch, "samples": table})
