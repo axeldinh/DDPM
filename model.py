@@ -33,7 +33,7 @@ class ResidualConvBlock(nn.Module):
             if self.same_channels:
                 out += x
             else:
-                shortcut = nn.Conv2d(x.shape[1], out.shape[1], kernel_size=1, stride=1, padding=0)
+                shortcut = nn.Conv2d(x.shape[1], out.shape[1], kernel_size=1, stride=1, padding=0).to(x.device)
                 out += shortcut(x)
 
         return out
