@@ -63,13 +63,15 @@ def train():
 
             wandb.log({"loss": loss, "epoch": epoch, "samples": table})
 
-
+@torch.no_grad()
 def test_model(model):
 
     model.eval()
-    with torch.no_grad():  # If not used, cuda runs out of memory
-        contexts = torch.arange(10).to(model.device).repeat(3).to(torch.float32)
-        samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
+
+    contexts = torch.arange(10).to(model.device).repeat(3).to(torch.float32)
+    samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
+
+    model.train()
 
     return samples, intermediate
 
