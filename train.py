@@ -49,7 +49,7 @@ def train():
 
             # Log Examples
             if epoch==0 and batch_idx==0:
-                wandb.log({"samples": wandb.Image(images[:32])}, step=epoch)
+                wandb.log({"Train Images": wandb.Image(images[:32])}, step=epoch)
             
             optimizer.zero_grad()
             images = images.to(hyperparams["device"])
