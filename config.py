@@ -6,13 +6,13 @@ model_params = {
     "beta_1": 1e-4,
     "beta_2": 0.02,
     "timesteps": 500,
-    "device": "cpu",
+    "device": "cuda",
     "save_dir": "models"
 }
 
 hyperparams = {
-    "batch_size": 32,
+    "batch_size": 100,
     "learning_rate": 0.001,
-    "epochs": 10,
+    "epochs": 100,
 }
 
