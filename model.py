@@ -35,6 +35,7 @@ class ResidualConvBlock(nn.Module):
             else:
                 shortcut = nn.Conv2d(x.shape[1], out.shape[1], kernel_size=1, stride=1, padding=0).to(x.device)
                 out += shortcut(x)
+            out /= 1.414
 
         return out
     
