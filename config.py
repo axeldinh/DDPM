@@ -5,7 +5,7 @@ model_params = {
     "height": 28,
     "beta_1": 1e-4,
     "beta_2": 0.02,
-    "timesteps": 500,
+    "timesteps": 1000,
     "device": "cuda",
     "save_dir": "models"
 }
