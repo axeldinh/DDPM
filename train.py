@@ -49,6 +49,10 @@ def train():
             images = images.to(hyperparams["device"])
             labels = labels.to(hyperparams["device"])
 
+            # Randomly mask labels
+            mask = torch.bernoulli(torch.zeros(labels.shape[0]) + 0.9).to(hyperparams["device"])
+            labels = labels * mask.unsqueeze(1)
+
             noise = torch.randn_like(images)
 
             t = torch.randint(1, hyperparams["timesteps"]+1, (images.shape[0],)).to(hyperparams["device"])
