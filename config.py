@@ -11,8 +11,8 @@ model_params = {
 }
 
 hyperparams = {
-    "batch_size": 100,
+    "batch_size": 128,
     "learning_rate": 0.001,
-    "epochs": 100,
+    "epochs": 20,
 }
 
