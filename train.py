@@ -45,7 +45,11 @@ def train():
 
         mean_loss = 0
 
-        for images, labels in pbar:
+        for batch_idx, (images, labels) in enumerate(pbar):
+
+            # Log Examples
+            if epoch==0 and batch_idx==0:
+                wandb.log({"samples": wandb.Image(images[:32])}, step=epoch)
             
             optimizer.zero_grad()
             images = images.to(hyperparams["device"])
