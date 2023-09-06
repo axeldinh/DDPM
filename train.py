@@ -10,6 +10,9 @@ from model import DDPM
 import wandb
 from config import model_params, hyperparams
 
+def target_transform(x):
+    return torch.nn.functional.one_hot(torch.tensor(x), num_classes=10).to(torch.float32)
+
 
 def train():
 
@@ -20,7 +23,7 @@ def train():
 
     model = DDPM(**model_params)
     dataset = FashionMNIST(root="data", download=True, train=True, transform=ToTensor(), 
-                           target_transform=lambda x: torch.nn.functional.one_hot(x).to(torch.float32))
+                           target_transform=target_transform)
     dataloader = DataLoader(dataset, batch_size=hyperparams["batch_size"], shuffle=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
 
