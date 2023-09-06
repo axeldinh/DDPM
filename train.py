@@ -10,18 +10,6 @@ from model import DDPM
 import wandb
 from config import model_params, hyperparams
 
-label_to_class = {
-    0: "T-shirt/top",
-    1: "Trouser",
-    2: "Pullover",
-    3: "Dress",
-    4: "Coat",
-    5: "Sandal",
-    6: "Shirt",
-    7: "Sneaker",
-    8: "Bag",
-    9: "Ankle boot"
-}
 
 def train():
 
@@ -31,7 +19,8 @@ def train():
     logger.config.update(hyperparams)
 
     model = DDPM(**model_params)
-    dataset = FashionMNIST(root="data", download=True, train=True, transform=ToTensor())
+    dataset = FashionMNIST(root="data", download=True, train=True, transform=ToTensor(), 
+                           target_transform=lambda x: torch.nn.functional.one_hot(x).to(torch.float32))
     dataloader = DataLoader(dataset, batch_size=hyperparams["batch_size"], shuffle=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
 
@@ -53,7 +42,7 @@ def train():
             
             optimizer.zero_grad()
             images = images.to(hyperparams["device"])
-            labels = labels.to(hyperparams["device"]).to(torch.float32)
+            labels = labels.to(hyperparams["device"])
 
             noise = torch.randn_like(images)
 
@@ -80,7 +69,9 @@ def test_model(model):
 
     model.eval()
 
-    contexts = torch.arange(10).to(model.device).repeat(3).to(torch.float32)
+    contexts = torch.arange(10).to(torch.float32)
+    contexts = torch.nn.functional.one_hot(contexts, num_classes=10)
+    contexts = contexts.repeat(3, 1).to(model.device)
     samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
 
     model.train()

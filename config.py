@@ -1,7 +1,7 @@
 model_params = {
     "in_channels": 1,
     "n_feat": 64,
-    "nc_feat": 1,
+    "nc_feat": 10,
     "height": 28,
     "beta_1": 1e-4,
     "beta_2": 0.02,

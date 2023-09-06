@@ -197,7 +197,7 @@ class DDPM(nn.Module):
 
             z = torch.randn_like(samples) if i > 1 else 0
 
-            eps = self.context_unet(samples, t, contexts)
+            eps = self.predict_noise(samples, t, contexts)
             samples = self.denoise_add_noise(samples, i, eps, z)
 
             if i % save_rate == 0 or i==self.timesteps:
