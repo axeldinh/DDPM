@@ -1,5 +1,5 @@
 import torch
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, Normalize, Compose
 from torchvision.datasets import FashionMNIST
 from torch.utils.data import DataLoader
 
@@ -9,6 +9,8 @@ from model import DDPM
 
 import wandb
 from config import model_params, hyperparams
+
+transform = Compose([ToTensor(), Normalize((0.5,), (0.5,))])
 
 def target_transform(x):
     return torch.nn.functional.one_hot(torch.tensor(x), num_classes=10).to(torch.float32)
@@ -22,7 +24,7 @@ def train():
     logger.config.update(hyperparams)
 
     model = DDPM(**model_params)
-    dataset = FashionMNIST(root="data", download=True, train=True, transform=ToTensor(), 
+    dataset = FashionMNIST(root="data", download=True, train=True, transform=transform, 
                            target_transform=target_transform)
     dataloader = DataLoader(dataset, batch_size=hyperparams["batch_size"], shuffle=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
