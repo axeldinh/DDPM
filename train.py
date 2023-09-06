@@ -72,9 +72,9 @@ def test_model(model):
 
     model.eval()
 
-    contexts = torch.arange(10).to(torch.float32)
+    contexts = torch.arange(10)
     contexts = torch.nn.functional.one_hot(contexts, num_classes=10)
-    contexts = contexts.repeat(3, 1).to(model.device)
+    contexts = contexts.repeat(3, 1).to(model.device).to(torch.float32)
     samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
 
     model.train()
