@@ -4,7 +4,7 @@ import numpy as np
 
 class ResidualConvBlock(nn.Module):
 
-    def __init__(self, in_channels: int, out_channels: int, is_res: bool=True) -> None:
+    def __init__(self, in_channels: int, out_channels: int, is_res: bool=False) -> None:
 
         super().__init__()
 
@@ -13,13 +13,13 @@ class ResidualConvBlock(nn.Module):
         self.is_res = is_res
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels, out_channels, 3, 1, 1),
             nn.BatchNorm2d(out_channels),
             nn.GELU()
         )
 
         self.conv2 = nn.Sequential(
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(out_channels, out_channels, 3, 1, 1),
             nn.BatchNorm2d(out_channels),
             nn.GELU()
         )
@@ -46,14 +46,14 @@ class UNetUp(nn.Module):
         super().__init__()
         
         self.model = nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(in_channels, out_channels, 2, 2),
             ResidualConvBlock(out_channels, out_channels),
             ResidualConvBlock(out_channels, out_channels)
         )
 
     def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
 
-        x = torch.cat((x, skip), dim=1)
+        x = torch.cat((x, skip), 1)
         return self.model(x)
 
 class UNetDown(nn.Module):
@@ -114,7 +114,7 @@ class ContextUNet(nn.Module):
         self.contex_embed2 = EmbedFC(n_cfeat, 1*n_feat)
 
         self.up0 = nn.Sequential(
-            nn.ConvTranspose2d(2*n_feat, 2*n_feat, self.height//4, stride=self.height//4),
+            nn.ConvTranspose2d(2*n_feat, 2*n_feat, self.height//4, self.height//4),
             nn.GroupNorm(8, 2*n_feat),
             nn.ReLU()
         )
@@ -123,10 +123,10 @@ class ContextUNet(nn.Module):
         self.up2 = UNetUp(2*n_feat, n_feat)
 
         self.out_conv = nn.Sequential(
-            nn.Conv2d(2 * n_feat, n_feat, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(2 * n_feat, n_feat, 3, 1, 1),
             nn.GroupNorm(8, n_feat),
             nn.ReLU(),
-            nn.Conv2d(n_feat, in_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(n_feat, in_channels, 3, 1, 1),
         )
 
     def forward(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor=None):
