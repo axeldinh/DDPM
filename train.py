@@ -59,7 +59,7 @@ def train():
 
             x_perturbed = model.perturb_input(images, t, noise)
 
-            pred_noise = model.predict_noise(x_perturbed, t/hyperparams["timesteps"], c=labels)
+            pred_noise = model.predict_noise(x_perturbed, t/hyperparams["timesteps"], c=None)
 
             loss = torch.mean((pred_noise - noise)**2)
             loss.backward()
@@ -81,7 +81,7 @@ def test_model(model):
     contexts = torch.arange(10)
     contexts = torch.nn.functional.one_hot(contexts, num_classes=10)
     contexts = contexts.repeat(3, 1).to(model.device).to(torch.float32)
-    samples, intermediate = model.sample_ddpm(30, contexts=contexts, save_rate=1)
+    samples, intermediate = model.sample_ddpm(30, contexts=None, save_rate=1)
 
     model.train()
 
